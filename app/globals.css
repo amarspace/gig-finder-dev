@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-orange: #FF822E;
+    --brand-purple: #8B5CF6;
+    --background: #F5F5F0;
+    --text-primary: #2D2D2D;
+    --text-secondary: #6B7280;
+    --border-purple: #E9D5FF;
+    --border-orange: #FFDFC4;
+  }
+
+  body {
+    @apply bg-background text-[#2D2D2D] font-sans;
+  }
+
+  * {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  /* Action Card Styles */
+  .action-card {
+    @apply flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer;
+  }
+
+  .action-card:active {
+    @apply scale-[0.98];
+  }
+
+  .action-card-purple {
+    @apply action-card border-border-purple bg-white hover:shadow-card;
+  }
+
+  .action-card-orange {
+    @apply action-card border-border-orange bg-white hover:shadow-card;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95;
+  }
+
+  .btn-orange {
+    @apply btn-primary bg-brand-orange text-white hover:bg-[#F77420];
+  }
+
+  .btn-purple {
+    @apply btn-primary bg-brand-purple text-white hover:bg-[#7C3AED];
+  }
+
+  .btn-dark {
+    @apply btn-primary bg-[#2D2D2D] text-white hover:bg-[#1F1F1F];
+  }
+
+  .btn-light {
+    @apply btn-primary bg-white border-2 border-[#E5E7EB] text-[#2D2D2D] hover:bg-[#F9FAFB];
+  }
+
+  /* Icon Container */
+  .icon-container {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  }
+
+  .icon-container-purple {
+    @apply icon-container bg-[#F3F0FF];
+  }
+
+  .icon-container-orange {
+    @apply icon-container bg-[#FFF4ED];
+  }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl;
+  }
+
+  /* Bottom Tab Bar */
+  .tab-bar {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-tab z-40;
+  }
+
+  .tab-item {
+    @apply flex flex-col items-center justify-center py-3 px-4 transition-colors duration-200;
+  }
+
+  .tab-item-active {
+    @apply tab-item;
+  }
+
+  .tab-icon {
+    @apply w-6 h-6 mb-1 transition-colors duration-200;
+  }
+
+  /* Animations */
+  @keyframes pulse-rings {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+  }
+
+  .pulse-ring {
+    animation: pulse-rings 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .float-icon {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
