@@ -67,14 +67,56 @@ export default function Home() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location: UserLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        console.log('[Geolocation] User location:', location);
-        setUserLocation(location);
-        setLocationError(null);
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        console.log('[Geolocation] Coordinates obtained:', { latitude, longitude });
+
+        // Reverse geocode to get city name
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            {
+              headers: {
+                'User-Agent': 'GigFinder/1.0',
+              },
+            }
+          );
+          const data = await response.json();
+
+          console.log('[Geolocation] Geocoding result:', data);
+
+          const city = data.address?.city ||
+                      data.address?.town ||
+                      data.address?.village ||
+                      data.address?.municipality ||
+                      data.address?.state ||
+                      'Unknown';
+
+          const country = data.address?.country || 'Unknown';
+
+          const location: UserLocation = {
+            latitude,
+            longitude,
+            city,
+            country,
+          };
+
+          console.log('[Geolocation] Final location:', location);
+          setUserLocation(location);
+          setLocationError(null);
+        } catch (error) {
+          console.error('[Geolocation] Geocoding error:', error);
+          // Use coordinates without city name
+          setUserLocation({
+            latitude,
+            longitude,
+            city: 'Your Location',
+            country: '',
+          });
+          setLocationError(null);
+        }
       },
       (error) => {
         console.error('[Geolocation] Error:', error);
@@ -90,7 +132,7 @@ export default function Home() {
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000, // Cache for 5 minutes
+        maximumAge: 0, // Don't use cached position - always get fresh location
       }
     );
   };

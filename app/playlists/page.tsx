@@ -46,6 +46,7 @@ export default function PlaylistsPage() {
   const getUserLocation = async (): Promise<{ city: string; latitude: number; longitude: number }> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
+        console.warn('[Playlists] Geolocation not supported');
         // Fallback to default location (Kyiv)
         resolve({ city: 'Kyiv', latitude: 50.4501, longitude: 30.5234 });
         return;
@@ -55,24 +56,46 @@ export default function PlaylistsPage() {
         async (position) => {
           const { latitude, longitude } = position.coords;
 
+          console.log('[Playlists] Coordinates obtained:', { latitude, longitude });
+
           // Reverse geocode to get city name
           try {
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+              {
+                headers: {
+                  'User-Agent': 'GigFinder/1.0',
+                },
+              }
             );
             const data = await response.json();
-            const city = data.address?.city || data.address?.town || 'Kyiv';
+
+            console.log('[Playlists] Geocoding result:', data);
+
+            const city = data.address?.city ||
+                        data.address?.town ||
+                        data.address?.village ||
+                        data.address?.municipality ||
+                        data.address?.state ||
+                        'Your Location';
+
+            console.log('[Playlists] Detected city:', city);
 
             resolve({ city, latitude, longitude });
           } catch (error) {
-            console.error('Geocoding error:', error);
-            resolve({ city: 'Kyiv', latitude, longitude });
+            console.error('[Playlists] Geocoding error:', error);
+            resolve({ city: 'Your Location', latitude, longitude });
           }
         },
         (error) => {
-          console.error('Geolocation error:', error);
+          console.error('[Playlists] Geolocation error:', error);
           // Fallback to default location
           resolve({ city: 'Kyiv', latitude: 50.4501, longitude: 30.5234 });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0, // Don't use cached position
         }
       );
     });
