@@ -48,6 +48,7 @@ export default function Home() {
 
   // Get user's geolocation on mount
   useEffect(() => {
+    console.log('🚀 GigFinder v2.1 - Geolocation Fix Active');
     if (session) {
       requestGeolocation();
     }
@@ -87,12 +88,15 @@ export default function Home() {
 
           console.log('[Geolocation] Geocoding result:', data);
 
+          // Try multiple address fields in order of preference
           const city = data.address?.city ||
                       data.address?.town ||
                       data.address?.village ||
                       data.address?.municipality ||
+                      data.address?.county ||
                       data.address?.state ||
-                      'Unknown';
+                      data.address?.region ||
+                      'Unknown Location';
 
           const country = data.address?.country || 'Unknown';
 
@@ -103,7 +107,12 @@ export default function Home() {
             country,
           };
 
-          console.log('[Geolocation] Final location:', location);
+          console.log('[Geolocation] 🌍 Raw geocoding data:', data.address);
+          console.log('[Geolocation] 📍 Detected city:', city);
+          console.log('[Geolocation] 🗺️  Final location:', location);
+
+          // Alert user about detected location for debugging
+          console.log(`✅ Location detected: ${city}, ${country} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
           setUserLocation(location);
           setLocationError(null);
         } catch (error) {
