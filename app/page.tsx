@@ -57,12 +57,12 @@ export default function Home() {
   const requestGeolocation = () => {
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by your browser');
-      // Fallback to default location (Warsaw, Poland)
+      // Fallback to default location (Kyiv, Ukraine)
       setUserLocation({
-        latitude: 52.2297,
-        longitude: 21.0122,
-        city: 'Warsaw',
-        country: 'Poland',
+        latitude: 50.4501,
+        longitude: 30.5234,
+        city: 'Kyiv',
+        country: 'Ukraine',
       });
       return;
     }
@@ -130,12 +130,12 @@ export default function Home() {
       (error) => {
         console.error('[Geolocation] Error:', error);
         setLocationError('Could not get your location. Using default location.');
-        // Fallback to default location (Warsaw, Poland)
+        // Fallback to default location (Kyiv, Ukraine)
         setUserLocation({
-          latitude: 52.2297,
-          longitude: 21.0122,
-          city: 'Warsaw',
-          country: 'Poland',
+          latitude: 50.4501,
+          longitude: 30.5234,
+          city: 'Kyiv',
+          country: 'Ukraine',
         });
       },
       {
