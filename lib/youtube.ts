@@ -5,9 +5,22 @@ import {
   YouTubeApiResponse,
 } from '@/types/youtube';
 import { MOCK_PLAYLISTS, MOCK_PLAYLIST_ITEMS } from './mockData';
+import {
+  youtubeCache,
+  getPlaylistsCacheKey,
+  getPlaylistItemsCacheKey,
+  getArtistSocialsCacheKey,
+} from './youtubeCache';
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_YOUTUBE === 'true';
+
+// Cache TTL settings (in milliseconds)
+const CACHE_TTL = {
+  PLAYLISTS: 1000 * 60 * 60 * 24, // 24 hours - playlists don't change often
+  PLAYLIST_ITEMS: 1000 * 60 * 60 * 12, // 12 hours - playlist content may update
+  ARTIST_SOCIALS: 1000 * 60 * 60 * 24 * 7, // 7 days - socials rarely change
+};
 
 export class YouTubeService {
   private accessToken: string;
@@ -19,6 +32,7 @@ export class YouTubeService {
   /**
    * Fetch all playlists from the user's library
    * Uses pagination to get ALL playlists
+   * CACHED for 24 hours to save quota
    */
   async getAllPlaylists(): Promise<YouTubePlaylist[]> {
     // Use mock data if enabled or if quota exceeded
@@ -27,10 +41,19 @@ export class YouTubeService {
       return Promise.resolve(MOCK_PLAYLISTS);
     }
 
+    // Check cache first
+    const cacheKey = getPlaylistsCacheKey(this.accessToken.substring(0, 10)); // Use token prefix as user ID
+    const cachedPlaylists = youtubeCache.get<YouTubePlaylist[]>(cacheKey);
+
+    if (cachedPlaylists) {
+      console.log(`[YouTubeService] 💾 Using cached playlists (${cachedPlaylists.length} items) - SAVED QUOTA!`);
+      return cachedPlaylists;
+    }
+
     const playlists: YouTubePlaylist[] = [];
     let pageToken: string | undefined = undefined;
 
-    console.log('[YouTubeService] Fetching playlists with OAuth token');
+    console.log('[YouTubeService] 📡 Fetching playlists from YouTube API (will cache for 24h)');
 
     try {
       do {
@@ -69,6 +92,10 @@ export class YouTubeService {
         pageToken = response.data.nextPageToken;
       } while (pageToken);
 
+      // Cache the result for 24 hours
+      youtubeCache.set(cacheKey, playlists, CACHE_TTL.PLAYLISTS);
+      console.log(`[YouTubeService] ✓ Cached ${playlists.length} playlists for 24 hours`);
+
       return playlists;
     } catch (error: any) {
       console.error('[YouTubeService] ✗ Error fetching playlists');
@@ -95,6 +122,7 @@ export class YouTubeService {
   /**
    * Fetch all items (videos) from a specific playlist
    * Uses pagination to get ALL items
+   * CACHED for 12 hours to save quota
    */
   async getPlaylistItems(playlistId: string): Promise<YouTubePlaylistItem[]> {
     // Use mock data if enabled
@@ -103,10 +131,21 @@ export class YouTubeService {
       return Promise.resolve(MOCK_PLAYLIST_ITEMS[playlistId] || []);
     }
 
+    // Check cache first
+    const cacheKey = getPlaylistItemsCacheKey(playlistId);
+    const cachedItems = youtubeCache.get<YouTubePlaylistItem[]>(cacheKey);
+
+    if (cachedItems) {
+      console.log(`[YouTubeService] 💾 Using cached playlist items for ${playlistId} (${cachedItems.length} items) - SAVED QUOTA!`);
+      return cachedItems;
+    }
+
     const items: YouTubePlaylistItem[] = [];
     let pageToken: string | undefined = undefined;
 
-    try {
+    console.log(`[YouTubeService] 📡 Fetching playlist items for ${playlistId} from YouTube API (will cache for 12h)`);
+
+    try{
       do {
         const response: { data: YouTubeApiResponse<any> } = await axios.get<YouTubeApiResponse<any>>(
           `${YOUTUBE_API_BASE}/playlistItems`,
@@ -137,6 +176,10 @@ export class YouTubeService {
         items.push(...playlistItems);
         pageToken = response.data.nextPageToken;
       } while (pageToken);
+
+      // Cache the result for 12 hours
+      youtubeCache.set(cacheKey, items, CACHE_TTL.PLAYLIST_ITEMS);
+      console.log(`[YouTubeService] ✓ Cached ${items.length} playlist items for 12 hours`);
 
       return items;
     } catch (error) {
