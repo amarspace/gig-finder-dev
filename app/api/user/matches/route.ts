@@ -205,6 +205,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // NOTE: Ukrainian scrapers (Concert.ua, Kontramarka, Karabas) are disabled
+    // because web scraping is unreliable - sites change HTML structure frequently.
+    // Ticketmaster API provides reliable global coverage including Ukraine.
+
     // STEP 3: Remove duplicates (same event ID)
     const uniqueEvents = Array.from(
       new Map(allEvents.map((event) => [event.id, event])).values()
